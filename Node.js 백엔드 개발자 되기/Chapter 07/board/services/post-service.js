@@ -1,12 +1,12 @@
 const {ObjectId} = require("mongodb");
 const paginator = require("../utils/paginator");
 
-async function getDetailPost(collection, id) {
-    const post = await collection.findOne({_id: new ObjectId(id)});
-    // 게시글 조회수 증가 (별도 처리, post 반환에 영향 없음)
-    await collection.updateOne({_id: new ObjectId(id)}, {$inc: {hits: 1}});
-    return post; // 명확하게 post 객체만 반환
-}
+const projectionOption = {
+    projection: {
+        password: 0,
+        "comments.password": 0,
+    },
+};
 
 async function list(collection, page, search) {
     const perPage = 10;
@@ -26,15 +26,45 @@ async function writePost(collection, post) {
     return await collection.insertOne(post);
 }
 
-const projectionOption = {
-    projection: {
-        password: 0,
-        "comments.password": 0,
-    },
-};
+async function getDetailPost(collection, id) {
+    const post = await collection.findOne({_id: new ObjectId(id)});
+    // 게시글 조회수 증가 (별도 처리, post 반환에 영향 없음)
+    await collection.updateOne({_id: new ObjectId(id)}, {$inc: {hits: 1}});
+    return post; // 명확하게 post 객체만 반환
+}
+
+async function getPostByIdAndPassword(collection, {id, password}) {
+    return await collection.findOne({_id: new ObjectId(id), password: password},
+    projectionOption);
+}
+
+async function getPostById(collection, id) {
+    return await collection.findOne({_id: new ObjectId(id)}, projectionOption);
+}
+
+async function getPostByIdForEdit(collection, id) {
+    return await collection.findOne({_id: new ObjectId(id)});
+}
+
+async function updatePost(collection, id, post) {
+    // 비밀번호가 비어있으면 업데이트에서 제외
+    const updateFields = { ...post };
+    if (!updateFields.password || updateFields.password.trim() === '') {
+        delete updateFields.password;
+    }
+    
+    const toUpdatePost = {
+        $set: updateFields,
+    };
+    return await collection.updateOne({_id: new ObjectId(id)}, toUpdatePost);
+}
 
 module.exports = {
-    getDetailPost,
     list,
     writePost,
+    getDetailPost,
+    updatePost,
+    getPostById,
+    getPostByIdAndPassword,
+    getPostByIdForEdit,
 };

@@ -35,7 +35,38 @@ app.get("/", async (req, res) => {
 });
 
 app.get("/write", (req, res) => {
-    res.render("write", {title: "테스트 게시판"});
+    res.render("write", {title: "테스트 게시판", mode: "create"});
+});
+
+app.get("/modify/:id", async(req, res) => {
+    const post = await postService.getPostByIdForEdit(collection, req.params.id);
+    console.log(post);
+    res.render("write", {title: "테스트 게시판", mode: "modify", post});
+});
+
+app.post("/modify/", async(req, res) => {
+    const {id, title, writer, password, content} = req.body;
+
+    // 비밀번호 검증
+    const existingPost = await postService.getPostByIdAndPassword(collection, {id, password});
+    if (!existingPost) {
+        return res.status(401).render("write", {
+            title: "테스트 게시판",
+            mode: "modify",
+            post: {id, title, writer, content},
+            error: "비밀번호가 올바르지 않습니다."
+        });
+    }
+
+    const post = {
+        title,
+        writer,
+        content,
+        password, // 비밀번호도 포함하여 전달
+    };
+    
+    const result = await postService.updatePost(collection, id, post);
+    res.redirect(`/detail/${id}`);
 });
 
 app.post("/write", async(req, res) => {
@@ -67,6 +98,17 @@ app.get("/detail/:id", async(req, res) => {
     } catch(error) {
         console.error(error);
         res.render("detail", {title: "테스트 게시판", error: "게시글을 불러올 수 없습니다."});
+    }
+});
+
+app.post("/check-password", async (req, res) => {
+    const {id, password} = req.body;
+    const post = await postService.getPostByIdAndPassword(collection, {id, password});
+    if(!post) {
+        return res.status(404).json({isExist: false});
+    }
+    else {
+        return res.json({isExist: true});
     }
 });
 
