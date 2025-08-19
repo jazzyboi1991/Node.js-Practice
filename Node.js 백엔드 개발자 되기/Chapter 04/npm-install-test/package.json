@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "lodash": "github:lodash/lodash"
+  },
+  "devDependencies": {
+    "jest": "^30.0.5"
+  }
+}
