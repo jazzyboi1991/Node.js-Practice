@@ -1,10 +1,10 @@
-const paginator = require("../utils/paginator");
 const {ObjectId} = require("mongodb");
+const paginator = require("../utils/paginator");
 
-async function writePost(collection, post) {
-    post.hits = 0;
-    post.createdDt = new Date().toISOString();
-    return await collection.insertOne(post);
+async function getDetailPost(collection, id) {
+    const post = await collection.findOne({_id: new ObjectId(id)});
+    await collection.updateOne({_id: new ObjectId(id)}, {$inc: {hits: 1}});
+    return post;
 }
 
 async function list(collection, page, search) {
@@ -15,8 +15,14 @@ async function list(collection, page, search) {
     });
     const totalCount = await collection.count(query);
     const posts = await cursor.toArray();
-    const paginatorObj = paginator({totalCount, page, perPage: perPage});
+    const paginatorObj = new paginator({totalCount, page, perPage: perPage});
     return [posts, paginatorObj];
+}
+
+async function writePost(collection, post) {
+    post.hits = 0;
+    post.createdDt = new Date().toISOString();
+    return await collection.insertOne(post);
 }
 
 const projectionOption = {
@@ -26,12 +32,8 @@ const projectionOption = {
     },
 };
 
-async function getDetailPost(collection, id) {
-    return await collection.findOneAndUpdate({_id: ObjectId(id)}, {$inc: {hits: 1}}, projectionOption);
-}
-
 module.exports = {
+    getDetailPost,
     list,
     writePost,
-    getDetailPost,
 };
