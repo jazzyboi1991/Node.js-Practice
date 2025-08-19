@@ -6,6 +6,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true})); // extended: true로 변경하여 객체와 배열 파싱 지원
 
 const mongodbConnection = require("./configs/mongodb-connection");
+const { ObjectId } = require("mongodb");
 
 app.engine(
     "handlebars",
@@ -67,6 +68,22 @@ app.post("/modify/", async(req, res) => {
     
     const result = await postService.updatePost(collection, id, post);
     res.redirect(`/detail/${id}`);
+});
+
+app.delete("/delete", async(req, res) => {
+    const {id, password} = req.body;
+    try {
+        const result = await collection.deleteOne({_id: new ObjectId(id), password: password});
+        if(result.deletedCount !== 1) {
+            console.log("삭제 실패");
+            return res.json({isSuccess: false});
+        }
+        return res.json({isSuccess: true});
+    }
+    catch(error) {
+        console.error(error);
+        return res.json({isSuccess: false});
+    }
 });
 
 app.post("/write", async(req, res) => {
