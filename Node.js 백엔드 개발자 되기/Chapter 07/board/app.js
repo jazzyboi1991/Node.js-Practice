@@ -45,6 +45,7 @@ app.get("/detail/:id", async(req, res) => {
         title: "테스트 게시판",
     });
 });
+
 let collection;
 app.listen(3000, async() => {
     console.log("Server Started");
