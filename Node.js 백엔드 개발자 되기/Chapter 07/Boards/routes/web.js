@@ -3,21 +3,26 @@ const Board = require('../models/Board');
 
 const router = express.Router();
 
-// 홈 페이지 - 게시글 목록
-router.get('/', async (req, res, next) => {
+// 홈 페이지 및 게시판 페이지 - 게시글 목록
+router.get(['/', '/board/', '/board'], async (req, res, next) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = 10;
         const skip = (page - 1) * limit;
 
         const boards = await Board.find()
-            .select('title author views createdAt')
+            .select('title author views createdAt attachments')
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
+            .lean();
 
         const total = await Board.countDocuments();
         const totalPages = Math.ceil(total / limit);
+
+        console.log('총 게시글 수:', total);
+        console.log('조회된 게시글:', boards.length);
+        console.log('첫 번째 게시글:', boards[0]);
 
         res.render('boards/list', {
             title: '게시판',
@@ -34,13 +39,21 @@ router.get('/', async (req, res, next) => {
     }
 });
 
+// 게시글 작성 페이지
+router.get('/board/new', (req, res) => {
+    res.render('boards/form', {
+        title: '게시글 작성',
+        isEdit: false
+    });
+});
+
 // 게시글 상세 보기
 router.get('/board/:id', async (req, res, next) => {
     try {
         const board = await Board.findByIdAndUpdate(
             req.params.id,
             { $inc: { views: 1 } },
-            { new: true }
+            { new: true, lean: true }
         );
 
         if (!board) {
@@ -59,18 +72,10 @@ router.get('/board/:id', async (req, res, next) => {
     }
 });
 
-// 게시글 작성 페이지
-router.get('/board/new', (req, res) => {
-    res.render('boards/form', {
-        title: '게시글 작성',
-        isEdit: false
-    });
-});
-
 // 게시글 수정 페이지
 router.get('/board/:id/edit', async (req, res, next) => {
     try {
-        const board = await Board.findById(req.params.id);
+        const board = await Board.findById(req.params.id).lean();
 
         if (!board) {
             return res.status(404).render('error', {

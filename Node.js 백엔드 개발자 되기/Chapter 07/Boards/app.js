@@ -7,6 +7,7 @@ require('dotenv').config();
 const connectDB = require('./config/database');
 const boardRoutes = require('./routes/boards');
 const webRoutes = require('./routes/web');
+const apiRoutes = require('./routes/api');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
@@ -57,6 +58,13 @@ app.engine('handlebars', engine({
         },
         eq: function(a, b) {
             return a === b;
+        },
+        add: function(a, b) {
+            return a + b;
+        },
+        and: function() {
+            const args = Array.prototype.slice.call(arguments, 0, -1);
+            return args.every(Boolean);
         }
     }
 }));
@@ -71,6 +79,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/', webRoutes);
 app.use('/api/boards', boardRoutes);
+app.use('/api', apiRoutes);
 
 app.use(errorHandler);
 

@@ -27,7 +27,7 @@
                         <div class="form-text">최대 5개 파일, 각 파일당 최대 5MB</div>
                     </div>
 
-                    {{#if board.attachments.length}}
+                    {{#if (and board board.attachments board.attachments.length)}}
                     <div class="mb-3">
                         <label class="form-label">기존 첨부파일</label>
                         <ul class="list-group">
