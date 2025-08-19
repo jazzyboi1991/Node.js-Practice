@@ -11,7 +11,7 @@ placeholder="검색어를 입력하세요."/>
         <thead>
             <tr>
                 <th width="50%">제목</th>
-                <ht>작성자</ht>
+                <th>작성자</th>
                 <th>조회수</th>
                 <th>등록일</th>
             </tr>
@@ -19,7 +19,7 @@ placeholder="검색어를 입력하세요."/>
         <tbody>
             {{#each posts}}
                 <tr>
-                    <td><a href="/detail/{{_id}}">{{title}}</td>
+                    <td><a href="/detail/{{_id}}">{{title}}</a></td>
                     <td>{{writer}}</td>
                     <td>{{hits}}</td>
                     <td>{{dateString createdDt}}</td>
@@ -41,7 +41,7 @@ placeholder="검색어를 입력하세요."/>
     {{#if (eq . @root.paginator.page)}}
     <a>{{.}}</a>
     {{else}}
-    <a href=""/?page={{.}}&search={{@root.search}}>{{.}}</a>
+    <a href="/?page={{.}}&search={{@root.search}}">{{.}}</a>
     {{/if}}
     {{/each}}
     {{#if hasNext}}

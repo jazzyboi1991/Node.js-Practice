@@ -16,7 +16,7 @@ async function list(collection, page, search) {
     });
     const totalCount = await collection.countDocuments(query); // count() 대신 countDocuments() 사용 (deprecated 해결)
     const posts = await cursor.toArray();
-    const paginatorObj = new paginator({totalCount, page, perPage: perPage});
+    const paginatorObj = paginator({totalCount, page, perPage: perPage});
     return [posts, paginatorObj];
 }
 
